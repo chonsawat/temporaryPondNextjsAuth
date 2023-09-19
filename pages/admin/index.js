@@ -1,15 +1,34 @@
-import { useSession } from "next-auth/react";
+"use client";
 
-import React from "react";
+import { useRouter } from "next/navigation";
+
+import React, { useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import { decodeJWT } from "@/utils/jwt";
 
 const AdminPage = () => {
-  const { data: user } = useSession();
+  const router = useRouter();
+  useEffect(() => {
+    const getCookie = async () => {
+      const cookie = await Cookies.get("auth");
+      return cookie;
+    };
 
-  if (!user) {
-    return <div>คุณต้องเข้าสู่ระบบเพื่อดูหน้านี้</div>;
-  }
+    getCookie().then((cookie) => {
+      if (cookie) {
+        const session = decodeJWT(cookie);
+        console.log("session", session);
 
-  return <div>AdminPage</div>;
+        if (session.user.role !== "Admin") {
+          router.replace("/");
+        }
+      } else {
+        router.replace("/login");
+      }
+    });
+  }, []);
+
+  return <>AdminPage</>;
 };
 
 export default AdminPage;
